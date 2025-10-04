@@ -29,6 +29,16 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'uamotors_db',
+        'USER': 'uamotors_user',
+        'PASSWORD': 'UAmotors@db',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -77,12 +87,12 @@ WSGI_APPLICATION = 'uamotors.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # Password validation
@@ -127,3 +137,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]

@@ -1,26 +1,26 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
 
 # Hardcoded credentials
-ADMIN_USERNAME = "uamotors123"
-ADMIN_PASSWORD = "UAmotors@123"
 
-@csrf_exempt
+
+@api_view(['POST'])
 def login_view(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body.decode("utf-8"))
-            username = data.get("username")
-            password = data.get("password")
+    username = request.data.get("username")
+    password = request.data.get("password")
 
-            if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-                return JsonResponse({
-                    "success": True,
-                    "token": "fake-jwt-token-12345"  # simple token
-                })
-            else:
-                return JsonResponse({"success": False, "error": "Invalid credentials"}, status=401)
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)}, status=400)
-    return JsonResponse({"success": False, "error": "Only POST allowed"}, status=405)
+    # Hardcoded credentials
+    if username == "uamotors" and password == "UAmotors@1234":
+        return Response(
+            {"message": "Login successful", "redirect": "/dashboard"},
+            status=status.HTTP_200_OK
+        )
+    else:
+        return Response(
+            {"error": "Invalid username or password"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )

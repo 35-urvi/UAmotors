@@ -1,4 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef ,useEffect} from 'react';
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import Navbar from '../components/Navbar';
 import Logo from '../assets/Logo.png';
 import QR from '../assets/QR.jpg';
@@ -6,31 +8,52 @@ import Audi from '../assets/Audi.png';
 import Mg from '../assets/Mg.png';
 import BMW from '../assets/BMW.png';
 import Honda from '../assets/Honda.png';
-import Volkswegan from '../assets/Volkswegan.png';
+import Volkswegan from '../assets/Volkswegan.jpg';
 import Mahindra from '../assets/Mahindra.png';
 import Kia from '../assets/Kia.png';
 import Toyota from '../assets/Toyota.png';
 import Hyundai from '../assets/hyundai.png';
 import Tata from '../assets/Tata.png'
 import Suzuki from '../assets/Suzuki.png';
+import Mercedes from '../assets/Mercedes.png'
 
 const BillingPage = () => {
-  const [billNo, setBillNo] = useState(300);
+  const [billNo, setBillNo] = useState("");
   const [billData, setBillData] = useState({
-    date: new Date().toISOString().split('T')[0],
-    customerName: '',
-    customerAddress: '',
-    customerContact: '',
-    vehicleNo: '',
-    model: '',
-    km: '',
-    nextServiceKm: ''
+    date: new Date().toISOString().slice(0, 10),
+    customerName: "",
+    customerAddress: "",
+    customerContact: "",
+    vehicleNo: "",
+    model: "",
+    km: "",
+    nextServiceKm: "",
   });
+
   
   const [items, setItems] = useState([
-    { particulars: '', quantity: 1, rate: 0, discount: 0 }
+    { particulars: "", quantity: 1, rate: 0, discount: 0 },
   ]);
-  
+
+  const [message, setMessage] = useState("");
+
+  // Fetch next bill number on page load
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/api/billing/next-bill/")
+      .then((res) => res.json())
+      .then((data) => setBillNo(data.bill_no))
+      .catch(() => setMessage("Error fetching bill number"));
+  }, []);
+
+  const handleItemChange = (index, field, value) => {
+    const updated = [...items];
+    updated[index][field] = value;
+    setItems(updated);
+  };
+
+  const addRow = () => setItems([...items, { particulars: "", quantity: 1, rate: 0, discount: 0 }]);
+  const removeRow = (index) => setItems(items.filter((_, i) => i !== index));
+
   const printRef = useRef();
 
   const addItem = () => {
@@ -49,15 +72,22 @@ const BillingPage = () => {
     setItems(updatedItems);
   };
 
-  const calculateAmount = (quantity, rate, discount) => {
-    const gross = (parseFloat(quantity) || 0) * (parseFloat(rate) || 0);
-    const discountAmount = gross * (parseFloat(discount) || 0) / 100;
-    return gross - discountAmount;
+  // const calculateAmount = (quantity, rate, discount) => {
+  //   const gross = (parseFloat(quantity) || 0) * (parseFloat(rate) || 0);
+  //   const discountAmount = gross * (parseFloat(discount) || 0) / 100;
+  //   return gross - discountAmount;
+  // };
+  const calculateAmount = (q, r, d) => {
+    let gross = q * r;
+    return gross - (gross * d) / 100;
   };
 
-  const calculateTotal = () => {
-    return items.reduce((total, item) => total + calculateAmount(item.quantity, item.rate, item.discount), 0);
-  };
+
+  // const calculateTotal = () => {
+  //   return items.reduce((total, item) => total + calculateAmount(item.quantity, item.rate, item.discount), 0);
+  // };
+  const calculateTotal = () =>
+    items.reduce((sum, i) => sum + calculateAmount(i.quantity, i.rate, i.discount), 0);
 
   const numberToWords = (num) => {
     const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
@@ -105,8 +135,88 @@ const BillingPage = () => {
     window.print();
   };
 
-  const handleDownloadPDF = () => {
-    alert('Please install jsPDF package: npm install jspdf jspdf-autotable');
+  // const handleDownloadPDF = () => {
+  //   alert('Please install jsPDF package: npm install jspdf jspdf-autotable');
+  // };
+  // Convert image URL (imported file) to Base64
+
+//  const handleDownloadPDF = () => {
+//   const doc = new jsPDF("p", "pt", "a4");
+
+//   // Header
+//   doc.setFontSize(14);
+//   doc.text("UA MOTORS", 40, 40);
+
+//   // Example table
+//   const tableColumn = ["No.", "Particulars", "Qty", "Rate", "Disc.%", "Amount"];
+//   const tableRows = [];
+
+//   items.forEach((item, index) => {
+//     tableRows.push([
+//       index + 1,
+//       item.particulars || "-",
+//       item.quantity,
+//       item.rate,
+//       item.discount,
+//       Math.round(calculateAmount(item.quantity, item.rate, item.discount)),
+//     ]);
+//   });
+
+//   tableRows.push([
+//     { content: "TOTAL", colSpan: 5, styles: { halign: "right", fontStyle: "bold" } },
+//     { content: Math.round(calculateTotal()), styles: { halign: "right", fontStyle: "bold" } },
+//   ]);
+
+//   // ✅ Correct usage
+//   autoTable(doc, {
+//     head: [tableColumn],
+//     body: tableRows,
+//     startY: 70,
+//     theme: "grid",
+//     styles: { fontSize: 9 },
+//     headStyles: { fillColor: [66, 133, 244] },
+//   });
+
+//   // Save PDF
+//   doc.save(`Bill-${billNo}.pdf`);
+// };
+
+const handleSave = async () => {
+    const payload = {
+      date: billData.date,
+      customer_name: billData.customerName,
+      customer_address: billData.customerAddress,
+      customer_contact: billData.customerContact,
+      vehicle_no: billData.vehicleNo,
+      model: billData.model,
+      km: billData.km,
+      next_service_km: billData.nextServiceKm,
+      total_amount: calculateTotal(),
+      items: items.map((i) => ({
+        particulars: i.particulars,
+        quantity: i.quantity,
+        rate: i.rate,
+        discount: i.discount,
+      })),
+    };
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/billing/create/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMessage(`✅ Bill saved successfully! Bill No: ${data.bill_no}`);
+        setBillNo(data.bill_no); // refresh bill no
+      } else {
+        setMessage(`❌ Error: ${JSON.stringify(data)}`);
+      }
+    } catch (err) {
+      setMessage("❌ Server error: " + err.message);
+    }
   };
 
   const generateNewBill = () => {
@@ -179,7 +289,7 @@ const BillingPage = () => {
     <div className="border border-black mb-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 border-b border-black">
         <div className="sm:border-r border-black p-3 border-b sm:border-b-0">
-          <div className="mb-2">
+          {/* <div className="mb-2">
             <strong>Customer's Name:</strong>
             <input
               type="text"
@@ -187,8 +297,19 @@ const BillingPage = () => {
               onChange={(e) => setBillData({...billData, customerName: e.target.value})}
               className="w-full border-b border-gray-300 mt-1 print:border-0 print:bg-transparent text-sm"
             />
+          </div> */}
+          <div className="flex items-center gap-2 mb-2">
+            <strong>Customer's Name:</strong>
+            <input
+              type="text"
+              value={billData.customerName}
+              onChange={(e) => setBillData({...billData, customerName: e.target.value})}
+              className="flex-1 border-b border-gray-300 print:border-0 print:bg-transparent text-sm"
+              placeholder="Enter name"
+            />
           </div>
-          <div className="mb-2">
+
+          <div className="flex items-center gap-2 mb-2">
             <strong>Address:</strong>
             <input
               type="text"
@@ -198,20 +319,22 @@ const BillingPage = () => {
               placeholder="Ahmedabad"
             />
           </div>
-          <div>
+          <div className='flex items-center gap-2 mb-2'>
             <strong>Contact:</strong>
             <input
               type="text"
               value={billData.customerContact}
               onChange={(e) => setBillData({...billData, customerContact: e.target.value})}
               className="w-full border-b border-gray-300 mt-1 print:border-0 print:bg-transparent text-sm"
+              placeholder="0000000000"
             />
           </div>
         </div>
         <div className="p-3">
           <div className="mb-2">
-            <strong>No:</strong>
-            <span className="ml-2">{billNo}-{new Date().getFullYear()}/2</span>
+            <strong>Bill No:</strong>
+            <span className="ml-2">{billNo}</span>
+            {message && <p className="mt-2 text-sm text-red-600">{message}</p>}
           </div>
           <div>
             <strong>Date:</strong>
@@ -226,7 +349,7 @@ const BillingPage = () => {
       </div>
       
       {/* Vehicle Details */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-3 text-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-3 p-3 text-sm">
         <div>
           <strong>Model:</strong>
           <input
@@ -272,7 +395,10 @@ const BillingPage = () => {
   );
 
   return (
-      <><Navbar />
+      <>
+      <div className="print:hidden">
+        <Navbar />
+      </div>
       <div className="min-h-screen bg-gray-100 p-2 sm:p-4">
       <div className="max-w-4xl mx-auto">
         {/* Control Buttons */}
@@ -284,10 +410,10 @@ const BillingPage = () => {
             Print Bill
           </button>
           <button
-            onClick={handleDownloadPDF}
+            onClick={handleSave}
             className="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm flex-1 sm:flex-none"
           >
-            Download PDF
+            Save Bill
           </button>
           <button
             onClick={generateNewBill}
@@ -300,7 +426,104 @@ const BillingPage = () => {
         {/* Bill - Screen View */}
         <div ref={printRef} className="bg-white p-3 sm:p-6 border border-gray-300 print:border-0 print:p-0 screen-view">
           <BillHeader />
-          <CustomerDetails />
+          {/* <CustomerDetails /> */}
+          <div className="border border-black mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 border-b border-black">
+        <div className="sm:border-r border-black p-3 border-b sm:border-b-0">
+          <div className="flex items-center gap-2 mb-2">
+            <strong>Customer's Name:</strong>
+            <input
+              type="text"
+              value={billData.customerName}
+              onChange={(e) => setBillData({...billData, customerName: e.target.value})}
+              className="flex-1 border-b border-gray-300 print:border-0 print:bg-transparent text-sm"
+              placeholder="Enter name"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 mb-2">
+            <strong>Address:</strong>
+            <input
+              type="text"
+              value={billData.customerAddress}
+              onChange={(e) => setBillData({...billData, customerAddress: e.target.value})}
+              className="w-full border-b border-gray-300 mt-1 print:border-0 print:bg-transparent text-sm"
+              placeholder="Ahmedabad"
+            />
+          </div>
+          <div className='flex items-center gap-2 mb-2'>
+            <strong>Contact:</strong>
+            <input
+              type="text"
+              value={billData.customerContact}
+              onChange={(e) => setBillData({...billData, customerContact: e.target.value})}
+              className="w-full border-b border-gray-300 mt-1 print:border-0 print:bg-transparent text-sm"
+              placeholder="0000000000"
+            />
+          </div>
+        </div>
+        <div className="p-3">
+          <div className="mb-2">
+            <strong>Bill No:</strong>
+            <span className="ml-2">{billNo}</span>
+            {message && <p className="mt-2 text-sm text-red-600">{message}</p>}
+          </div>
+          <div>
+            <strong>Date:</strong>
+            <input
+              type="date"
+              value={billData.date}
+              onChange={(e) => setBillData({...billData, date: e.target.value})}
+              className="ml-2 border border-gray-300 px-2 py-1 print:border-0 print:bg-transparent text-sm w-auto"
+            />
+          </div>
+        </div>
+      </div>
+      
+      {/* Vehicle Details */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-3 p-3 text-sm">
+        <div>
+          <strong>Model:</strong>
+          <input
+            type="text"
+            value={billData.model}
+            onChange={(e) => setBillData({...billData, model: e.target.value})}
+            className="w-full border-b border-gray-300 mt-1 print:border-0 print:bg-transparent text-sm"
+            placeholder="BMW 3 Series"
+          />
+        </div>
+        <div>
+          <strong>Reg. No.:</strong>
+          <input
+            type="text"
+            value={billData.vehicleNo}
+            onChange={(e) => setBillData({...billData, vehicleNo: e.target.value})}
+            className="w-full border-b border-gray-300 mt-1 print:border-0 print:bg-transparent text-sm"
+            placeholder="GJ 01 AA 0000"
+          />
+        </div>
+        <div>
+          <strong>K.M.:</strong>
+          <input
+            type="number"
+            value={billData.km}
+            onChange={(e) => setBillData({...billData, km: e.target.value})}
+            className="w-full border-b border-gray-300 mt-1 print:border-0 print:bg-transparent text-sm"
+            placeholder="10000"
+          />
+        </div>
+        <div>
+          <strong>Next Service KM:</strong>
+          <input
+            type="number"
+            value={billData.nextServiceKm}
+            onChange={(e) => setBillData({...billData, nextServiceKm: e.target.value})}
+            className="w-full border-b border-gray-300 mt-1 print:border-0 print:bg-transparent text-sm"
+            placeholder="15000"
+          />
+        </div>
+      </div>
+    </div>
 
           {/* Items Table */}
           <div className="overflow-x-auto mb-4">
@@ -416,17 +639,19 @@ const BillingPage = () => {
             <div className="text-xs w-full sm:w-auto">
               {/* Car Brand Logos */}
               <div className="flex flex-wrap gap-2 mt-4">
-                <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Audi} alt="Logo" className="w-full h-full object-contain" /></div>
-                <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={BMW} alt="Logo" className="w-full h-full object-contain" /></div>
-                <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Volkswegan} alt="Logo" className="w-full h-full object-contain" /></div>
-                <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Mg} alt="Logo" className="w-full h-full object-contain" /></div>
-                <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Mahindra} alt="Logo" className="w-full h-full object-contain" /></div>
-                <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Toyota} alt="Logo" className="w-full h-full object-contain" /></div>
-                <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Kia} alt="Logo" className="w-full h-full object-contain" /></div>
-                <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Hyundai} alt="Logo" className="w-full h-full object-contain" /></div>
-                <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Tata} alt="Logo" className="w-full h-full object-contain" /></div>
-                <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Suzuki} alt="Logo" className="w-full h-full object-contain" /></div>
-                <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Honda} alt="Logo" className="w-full h-full object-contain" /></div>
+
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mercedes} alt="Logo" className="w-full h-full object-contain" /></div>
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Audi} alt="Logo" className="w-full h-full object-contain" /></div>
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={BMW} alt="Logo" className="w-full h-full object-contain" /></div>
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Volkswegan} alt="Logo" className="w-full h-full object-contain" /></div>
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mg} alt="Logo" className="w-full h-full object-contain" /></div>
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mahindra} alt="Logo" className="w-full h-full object-contain" /></div>
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Toyota} alt="Logo" className="w-full h-full object-contain" /></div>
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Kia} alt="Logo" className="w-full h-full object-contain" /></div>
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Hyundai} alt="Logo" className="w-full h-full object-contain" /></div>
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Tata} alt="Logo" className="w-full h-full object-contain" /></div>
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Suzuki} alt="Logo" className="w-full h-full object-contain" /></div>
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Honda} alt="Logo" className="w-full h-full object-contain" /></div>
               </div>
             </div>
 
@@ -452,7 +677,12 @@ const BillingPage = () => {
             const startIndex = pageIndex * itemsPerPage;
 
             return (
-              <div key={pageIndex} className="print-page" style={{ pageBreakAfter: isLastPage ? 'auto' : 'always' }}>
+              // <div key={pageIndex} className="print-page" style={{ pageBreakAfter: isLastPage ? 'auto' : 'always' }}>
+              <div 
+                key={pageIndex} 
+                className="print-page" 
+                style={{ pageBreakAfter: isLastPage ? 'auto' : 'always', minHeight: "100%" }}
+              >
                 <BillHeader />
                 <CustomerDetails />
 
@@ -519,17 +749,18 @@ const BillingPage = () => {
                       <div className="text-xs">
                         {/* Car Brand Logos */}
                         <div className="flex flex-wrap gap-2 mt-4">
-                          <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Audi} alt="Logo" className="w-full h-full object-contain" /></div>
-                          <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={BMW} alt="Logo" className="w-full h-full object-contain" /></div>
-                          <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Volkswegan} alt="Logo" className="w-full h-full object-contain" /></div>
-                          <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Mg} alt="Logo" className="w-full h-full object-contain" /></div>
-                          <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Mahindra} alt="Logo" className="w-full h-full object-contain" /></div>
-                          <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Toyota} alt="Logo" className="w-full h-full object-contain" /></div>
-                          <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Kia} alt="Logo" className="w-full h-full object-contain" /></div>
-                          <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Hyundai} alt="Logo" className="w-full h-full object-contain" /></div>
-                          <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Tata} alt="Logo" className="w-full h-full object-contain" /></div>
-                          <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Suzuki} alt="Logo" className="w-full h-full object-contain" /></div>
-                          <div className="w-8 h-6 bg-gray-200 rounded flex items-center justify-center text-xs"><img src={Honda} alt="Logo" className="w-full h-full object-contain" /></div>
+                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mercedes} alt="Logo" className="w-full h-full bg-white object-contain" /></div>
+                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Audi} alt="Logo" className="w-full h-full bg-white object-contain" /></div>
+                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={BMW} alt="Logo" className="w-full h-full object-contain" /></div>
+                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Volkswegan} alt="Logo" className="w-full h-full object-contain" /></div>
+                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mg} alt="Logo" className="w-full h-full object-contain" /></div>
+                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mahindra} alt="Logo" className="w-full h-full object-contain" /></div>
+                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Toyota} alt="Logo" className="w-full h-full object-contain" /></div>
+                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Kia} alt="Logo" className="w-full h-full object-contain" /></div>
+                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Hyundai} alt="Logo" className="w-full h-full object-contain" /></div>
+                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Tata} alt="Logo" className="w-full h-full object-contain" /></div>
+                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Suzuki} alt="Logo" className="w-full h-full object-contain" /></div>
+                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Honda} alt="Logo" className="w-full h-full object-contain" /></div>
                         </div>
                       </div>
 
@@ -554,7 +785,7 @@ const BillingPage = () => {
       </div>
 
       {/* Print Styles */}
-      <style jsx>{`
+      <style>{`
         @media print {
           body { margin: 0; }
           .print\\:hidden { display: none !important; }

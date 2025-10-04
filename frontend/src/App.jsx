@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import BillingPage from "./pages/Billing";
+import History from "./pages/History"
 
 function PrivateRoute({ children }) {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
@@ -33,7 +34,7 @@ export default function App() {
           path="/history"
           element={
             <PrivateRoute>
-              <BillingPage />
+              <History />
             </PrivateRoute>
           }
         />

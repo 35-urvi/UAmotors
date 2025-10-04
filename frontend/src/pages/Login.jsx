@@ -47,30 +47,34 @@ export default function Login() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
+  e.preventDefault();
+
+  if (!validateForm()) return;
+
+  setIsLoading(true);
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/api/login/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      console.log(data.message);
+      window.location.href = data.redirect; // redirect to dashboard
+    } else {
+      const err = await res.json();
+      setErrors({ submit: err.error });
     }
-    
-    setIsLoading(true);
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // On successful login, redirect to dashboard
-      // Replace this with your actual routing logic
-      console.log('Login successful, redirecting to dashboard...');
-      window.location.href = '/dashboard'; // or use your router's navigation
-      
-    } catch (error) {
-      console.error('Login failed:', error);
-      setErrors({ submit: 'Login failed. Please try again.' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  } catch (error) {
+    setErrors({ submit: "Something went wrong. Try again." });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4 sm:px-6 lg:px-8">
