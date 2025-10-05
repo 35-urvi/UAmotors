@@ -2,8 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import BillingPage from "./pages/Billing";
-import History from "./pages/History"
-
+import History from "./pages/History";
+import ItemListing from "./pages/ItemListing";
 function PrivateRoute({ children }) {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
   return isLoggedIn ? children : <Navigate to="/" />;
@@ -35,6 +35,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <History />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/item-list"
+          element={
+            <PrivateRoute>
+              <ItemListing />
             </PrivateRoute>
           }
         />

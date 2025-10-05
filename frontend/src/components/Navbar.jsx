@@ -4,6 +4,7 @@ import {
   HomeIcon,
   CreditCardIcon,
   ClockIcon,
+  ClipboardDocumentListIcon,
 } from '@heroicons/react/24/outline';
 import Logo from '../assets/Logo.png'
 
@@ -14,6 +15,7 @@ export default function Navbar() {
     { name: 'Dashboard', icon: HomeIcon, path: '/dashboard' },
     { name: 'Billing', icon: CreditCardIcon, path: '/billing' },
     { name: 'History', icon: ClockIcon, path: '/history' },
+    { name: 'Item List', icon: ClipboardDocumentListIcon, path: '/item-list' },
   ];
 
   const handleLogout = () => {
