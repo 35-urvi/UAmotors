@@ -39,6 +39,8 @@ const BillingPage = () => {
   ]);
 
   const [message, setMessage] = useState("");
+  const [itemsCatalog, setItemsCatalog] = useState([]); // list of item names for suggestions
+  const [openSuggestIndex, setOpenSuggestIndex] = useState(null);
 
   // Handle auto-filling data from navigation state and fetch next bill number
   useEffect(() => {
@@ -63,6 +65,17 @@ const BillingPage = () => {
         .catch(() => setMessage("Error fetching bill number"));
     }
   }, [location.state]);
+
+  // Fetch items catalog for suggestions
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/items/')
+      .then(res => res.json())
+      .then(data => {
+        const names = Array.isArray(data) ? data.map(i => i.name).filter(Boolean) : [];
+        setItemsCatalog(names);
+      })
+      .catch(() => {/* ignore */});
+  }, []);
 
   const handleItemChange = (index, field, value) => {
     const updated = [...items];
@@ -607,12 +620,44 @@ const handleSave = async () => {
                       {index + 1}
                     </td>
                     <td className="border border-black p-2">
-                      <input
-                        type="text"
-                        value={item.particulars}
-                        onChange={(e) => updateItem(index, 'particulars', e.target.value)}
-                        className="w-full bg-transparent print:border-0 text-sm"
-                        placeholder="Enter service/part details" />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={item.particulars}
+                          onChange={(e) => {
+                            updateItem(index, 'particulars', e.target.value);
+                            setOpenSuggestIndex(index);
+                          }}
+                          onFocus={() => setOpenSuggestIndex(index)}
+                          className="w-full bg-transparent print:border-0 text-sm"
+                          placeholder="Enter service/part details" />
+
+                        {openSuggestIndex === index && item.particulars && itemsCatalog.length > 0 && (
+                          (() => {
+                            const q = (item.particulars || '').toLowerCase();
+                            const matches = itemsCatalog.filter(name => name.toLowerCase().includes(q)).slice(0, 8);
+                            if (matches.length === 0) return null;
+                            return (
+                              <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 shadow text-sm max-h-40 overflow-auto">
+                                {matches.map((name, i) => (
+                                  <div
+                                    key={i}
+                                    className="px-2 py-1 hover:bg-gray-100 cursor-pointer"
+                                    onMouseDown={(e) => {
+                                      // onMouseDown to prevent input blur before click
+                                      e.preventDefault();
+                                      updateItem(index, 'particulars', name);
+                                      setOpenSuggestIndex(null);
+                                    }}
+                                  >
+                                    {name}
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })()
+                        )}
+                      </div>
                     </td>
                     <td className="border border-black p-2">
                       <input

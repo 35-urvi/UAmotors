@@ -578,7 +578,7 @@ const sortedBills = [...filteredBills].sort((a, b) => {
                               onClick={() => handlePrintBill(selectedBill)}
                               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                           >
-                              Print
+                              Print & Update
                           </button>
                           <button
                               onClick={() => handleDeleteBill(selectedBill.id)}
