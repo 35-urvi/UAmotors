@@ -37,14 +37,11 @@ class BillItem(models.Model):
     particulars = models.CharField(max_length=200)
     quantity = models.IntegerField(default=1)
     rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    discount = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def save(self, *args, **kwargs):
-        # Calculate amount automatically: (qty × rate) - discount%
-        gross = self.quantity * self.rate
-        discount_amt = (gross * self.discount) / 100
-        self.amount = gross - discount_amt
+        # Calculate amount automatically: (qty × rate)
+        self.amount = self.quantity * self.rate
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -4,7 +4,7 @@ from .models import Bill, BillItem
 class BillItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = BillItem
-        fields = ['id', 'particulars', 'quantity', 'rate', 'discount', 'amount']
+        fields = ['id', 'particulars', 'quantity', 'rate', 'amount']
 
 class BillSerializer(serializers.ModelSerializer):
     items = BillItemSerializer(many=True)
@@ -25,7 +25,7 @@ class BillSerializer(serializers.ModelSerializer):
             BillItem.objects.create(bill=bill, **item_data)
 
         # Recalculate total
-        total = sum(item['quantity'] * item['rate'] - (item['quantity'] * item['rate'] * item['discount']) / 100 for item in items_data)
+        total = sum(item['quantity'] * item['rate'] for item in items_data)
         bill.total_amount = total
         bill.save()
 

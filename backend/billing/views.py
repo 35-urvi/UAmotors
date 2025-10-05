@@ -2,7 +2,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.timezone import now
-from .models import Bill
+from .models import Bill, BillItem
+from decimal import Decimal, InvalidOperation
 from .serializers import BillSerializer
 from rest_framework import generics
 
@@ -40,6 +41,77 @@ def get_bill(request, pk):
         return Response(serializer.data)
     except Bill.DoesNotExist:
         return Response({"error": "Bill not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['DELETE'])
+def delete_bill(request, pk):
+    try:
+        bill = Bill.objects.get(pk=pk)
+        bill.delete()
+        return Response({"message": "Bill deleted successfully"}, status=status.HTTP_200_OK)
+    except Bill.DoesNotExist:
+        return Response({"error": "Bill not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['PUT'])
+def update_bill(request, pk):
+    """Update an existing bill and its items."""
+    try:
+        bill = Bill.objects.get(pk=pk)
+    except Bill.DoesNotExist:
+        return Response({"error": "Bill not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    data = request.data.copy()
+    items_data = data.pop('items', [])
+
+    # Update simple bill fields if present
+    updatable_fields = [
+        'date', 'customer_name', 'customer_address', 'customer_contact',
+        'vehicle_no', 'model', 'km', 'next_service_km', 'total_amount'
+    ]
+    for field in updatable_fields:
+        if field in data:
+            setattr(bill, field, data[field])
+
+    # Replace items with provided set (idempotent update)
+    if items_data is not None:
+        bill.items.all().delete()
+
+        def to_int(value, default=0):
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                try:
+                    return int(float(value))
+                except (TypeError, ValueError):
+                    return default
+
+        def to_decimal(value, default=Decimal('0')):
+            try:
+                return Decimal(str(value))
+            except (InvalidOperation, TypeError, ValueError):
+                return default
+
+        running_total = Decimal('0')
+        for item in items_data:
+            qty = to_int(item.get('quantity', 1), 1)
+            rate = to_decimal(item.get('rate', 0), Decimal('0'))
+            line_total = to_decimal(qty) * rate
+
+            BillItem.objects.create(
+                bill=bill,
+                particulars=item.get('particulars', ''),
+                quantity=qty,
+                rate=rate,
+            )
+
+            running_total += line_total
+
+        # Recalculate total_amount from items
+        bill.total_amount = running_total
+
+    bill.save()
+
+    serializer = BillSerializer(bill)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 # Fetch all bills

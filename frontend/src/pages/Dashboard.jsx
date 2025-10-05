@@ -1,65 +1,102 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import axios from 'axios';
 import Navbar from '../components/Navbar';
 
 
 export default function Dashboard() {
-  // Monthly income data for the year
-  const monthlyIncomeData = [
-    { month: 'Jan', income: 18500 },
-    { month: 'Feb', income: 21200 },
-    { month: 'Mar', income: 19800 },
-    { month: 'Apr', income: 23400 },
-    { month: 'May', income: 25600 },
-    { month: 'Jun', income: 22900 },
-    { month: 'Jul', income: 26800 },
-    { month: 'Aug', income: 24300 },
-    { month: 'Sep', income: 27500 },
-    { month: 'Oct', income: 24580 },
-    { month: 'Nov', income: 0 },
-    { month: 'Dec', income: 0 }
-  ];
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [monthlyRevenue, setMonthlyRevenue] = useState([]);
+  const [topServices, setTopServices] = useState({});
+  const [recentBills, setRecentBills] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Bills by category
-  const billsCategoryData = [
-    { name: 'Product Sales', value: 89, color: '#3b82f6' },
-    { name: 'Services', value: 45, color: '#8b5cf6' },
-    { name: 'Consulting', value: 22, color: '#10b981' }
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-  // Quarterly comparison
-  const quarterlyData = [
-    { quarter: 'Q1 2024', bills: 45, income: 59500 },
-    { quarter: 'Q2 2024', bills: 52, income: 71900 },
-    { quarter: 'Q3 2024', bills: 59, income: 78600 }
-  ];
+  const fetchDashboardData = async () => {
+    try {
+      const [statsResponse, revenueResponse, servicesResponse, billsResponse] = await Promise.all([
+        axios.get('http://127.0.0.1:8000/api/dashboard/stats/'),
+        axios.get('http://127.0.0.1:8000/api/dashboard/monthly-revenue/'),
+        axios.get('http://127.0.0.1:8000/api/dashboard/top-services/'),
+        axios.get('http://127.0.0.1:8000/api/dashboard/recent-bills/')
+      ]);
 
-  const summaryCards = [
+      setDashboardStats(statsResponse.data);
+      setMonthlyRevenue(revenueResponse.data);
+      setTopServices(servicesResponse.data);
+      setRecentBills(billsResponse.data);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Format monthly revenue data for charts
+  const monthlyIncomeData = monthlyRevenue.map(item => ({
+    month: item.month_name.split(' ')[0],
+    income: item.revenue
+  }));
+
+  // Format top services for pie chart (top 5 by frequency)
+  const billsCategoryData = topServices.by_frequency?.slice(0, 5).map((service, index) => ({
+    name: service.particulars || 'Other',
+    value: service.count,
+    color: ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'][index] || '#6b7280'
+  })) || [];
+
+  // Create summary cards from dashboard stats
+  const summaryCards = dashboardStats ? [
     {
-      title: 'Monthly Income',
-      value: '$24,580',
+      title: 'Today\'s Revenue',
+      value: `₹${dashboardStats.today_revenue.toLocaleString('en-IN')}`,
       icon: '💰',
       bgColor: 'bg-green-50',
       iconColor: 'text-green-600',
       textColor: 'text-green-900'
     },
     {
-      title: 'Total Bills',
-      value: '156',
-      icon: '📄',
+      title: 'Monthly Revenue',
+      value: `₹${dashboardStats.month_revenue.toLocaleString('en-IN')}`,
+      icon: '📊',
       bgColor: 'bg-blue-50',
       iconColor: 'text-blue-600',
       textColor: 'text-blue-900'
+    },
+    {
+      title: 'Yearly Revenue',
+      value: `₹${dashboardStats.year_revenue.toLocaleString('en-IN')}`,
+      icon: '📈',
+      bgColor: 'bg-purple-50',
+      iconColor: 'text-purple-600',
+      textColor: 'text-purple-900'
+    },
+    {
+      title: 'Average Bill Value',
+      value: `₹${dashboardStats.avg_bill_value.toLocaleString('en-IN')}`,
+      icon: '📊',
+      bgColor: 'bg-orange-50',
+      iconColor: 'text-orange-600',
+      textColor: 'text-orange-900'
     }
-  ];
+  ] : [];
 
-  const recentBills = [
-    { id: 'INV-001', customer: 'John Smith', amount: '$1,250', date: '2024-01-15' },
-    { id: 'INV-002', customer: 'Sarah Johnson', amount: '$890', date: '2024-01-14' },
-    { id: 'INV-003', customer: 'Mike Davis', amount: '$2,150', date: '2024-01-13' },
-    { id: 'INV-004', customer: 'Emma Wilson', amount: '$675', date: '2024-01-12' },
-    { id: 'INV-005', customer: 'David Brown', amount: '$1,480', date: '2024-01-11' }
-  ];
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -78,7 +115,7 @@ export default function Dashboard() {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {summaryCards.map((card, index) => (
                 <div key={index} className={`${card.bgColor} rounded-lg p-6 border border-gray-200`}>
                   <div className="flex items-center justify-between">
@@ -96,24 +133,25 @@ export default function Dashboard() {
 
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              {/* Yearly Income Trend */}
+              {/* Monthly Revenue Trend */}
               <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Yearly Income Trend</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Monthly Revenue Trend</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={monthlyIncomeData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
+                    <Tooltip formatter={(value) => `₹${value.toLocaleString('en-IN')}`} />
                     <Legend />
-                    <Line type="monotone" dataKey="income" stroke="#3b82f6" strokeWidth={2} name="Monthly Income" />
+                    <Line type="monotone" dataKey="income" stroke="#3b82f6" strokeWidth={2} name="Monthly Revenue" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* Bills by Category */}
+              {/* Top Services */}
               <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Bills by Category</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Top Services</h3>
+                {billsCategoryData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -133,28 +171,15 @@ export default function Dashboard() {
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-gray-500">
+                    No service data available
               </div>
-
-              {/* Quarterly Performance */}
-              <div className="bg-white rounded-lg shadow border border-gray-200 p-6 lg:col-span-2">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Quarterly Performance</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={quarterlyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="quarter" />
-                    <YAxis yAxisId="left" orientation="left" stroke="#3b82f6" />
-                    <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
-                    <Tooltip />
-                    <Legend />
-                    <Bar yAxisId="left" dataKey="bills" fill="#3b82f6" name="Number of Bills" />
-                    <Bar yAxisId="right" dataKey="income" fill="#10b981" name="Income ($)" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+                )}
             </div>
 
             {/* Recent Bills Table */}
-            {/* <div className="bg-white rounded-lg shadow border border-gray-200">
+              <div className="bg-white rounded-lg shadow border border-gray-200 lg:col-span-2">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h3 className="text-lg font-medium text-gray-900">Recent Bills</h3>
               </div>
@@ -163,10 +188,13 @@ export default function Dashboard() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Bill ID
+                          Bill No
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Customer Name
+                      </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Vehicle No
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Amount
@@ -177,26 +205,38 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {recentBills.map((bill, index) => (
+                      {recentBills.length > 0 ? (
+                        recentBills.map((bill, index) => (
                       <tr key={bill.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {bill.id}
+                              {bill.bill_no}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {bill.customer}
+                              {bill.customer_name}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono">
+                              {bill.vehicle_no}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                          {bill.amount}
+                              ₹{bill.total_amount.toLocaleString('en-IN')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {bill.date}
+                              {new Date(bill.date).toLocaleDateString('en-IN')}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                            No recent bills found
                         </td>
                       </tr>
-                    ))}
+                      )}
                   </tbody>
                 </table>
               </div>
-            </div> */}
+              </div>
+            </div>
           </div>
         </main>
       </div>

@@ -1,4 +1,5 @@
 import React, { useState, useRef ,useEffect} from 'react';
+import { useLocation } from 'react-router-dom';
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Navbar from '../components/Navbar';
@@ -18,7 +19,9 @@ import Suzuki from '../assets/Suzuki.png';
 import Mercedes from '../assets/Mercedes.png'
 
 const BillingPage = () => {
+  const location = useLocation();
   const [billNo, setBillNo] = useState("");
+  const isEditMode = !!(location.state?.mode === 'edit' && location.state?.billId);
   const [billData, setBillData] = useState({
     date: new Date().toISOString().slice(0, 10),
     customerName: "",
@@ -32,18 +35,34 @@ const BillingPage = () => {
 
   
   const [items, setItems] = useState([
-    { particulars: "", quantity: 1, rate: 0, discount: 0 },
+    { particulars: "", quantity: 1, rate: 0 },
   ]);
 
   const [message, setMessage] = useState("");
 
-  // Fetch next bill number on page load
+  // Handle auto-filling data from navigation state and fetch next bill number
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/billing/next-bill/")
-      .then((res) => res.json())
-      .then((data) => setBillNo(data.bill_no))
-      .catch(() => setMessage("Error fetching bill number"));
-  }, []);
+    if (location.state?.billData) {
+      // Auto-fill bill data from navigation state
+      setBillData(location.state.billData);
+      setBillNo(location.state.billData.billNo);
+      
+      // Auto-fill items if available
+      if (location.state.items && location.state.items.length > 0) {
+        setItems(location.state.items.map(item => ({
+          particulars: item.particulars || "",
+          quantity: item.quantity || 1,
+          rate: item.rate || 0
+        })));
+      }
+    } else {
+      // Fetch next bill number only if not printing existing bill
+      fetch("http://127.0.0.1:8000/api/billing/next-bill/")
+        .then((res) => res.json())
+        .then((data) => setBillNo(data.bill_no))
+        .catch(() => setMessage("Error fetching bill number"));
+    }
+  }, [location.state]);
 
   const handleItemChange = (index, field, value) => {
     const updated = [...items];
@@ -51,13 +70,13 @@ const BillingPage = () => {
     setItems(updated);
   };
 
-  const addRow = () => setItems([...items, { particulars: "", quantity: 1, rate: 0, discount: 0 }]);
+  const addRow = () => setItems([...items, { particulars: "", quantity: 1, rate: 0 }]);
   const removeRow = (index) => setItems(items.filter((_, i) => i !== index));
 
   const printRef = useRef();
 
   const addItem = () => {
-    setItems([...items, { particulars: '', quantity: 1, rate: 0, discount: 0 }]);
+    setItems([...items, { particulars: '', quantity: 1, rate: 0 }]);
   };
 
   const removeItem = (index) => {
@@ -77,9 +96,8 @@ const BillingPage = () => {
   //   const discountAmount = gross * (parseFloat(discount) || 0) / 100;
   //   return gross - discountAmount;
   // };
-  const calculateAmount = (q, r, d) => {
-    let gross = q * r;
-    return gross - (gross * d) / 100;
+  const calculateAmount = (q, r) => {
+    return q * r;
   };
 
 
@@ -87,7 +105,7 @@ const BillingPage = () => {
   //   return items.reduce((total, item) => total + calculateAmount(item.quantity, item.rate, item.discount), 0);
   // };
   const calculateTotal = () =>
-    items.reduce((sum, i) => sum + calculateAmount(i.quantity, i.rate, i.discount), 0);
+    items.reduce((sum, i) => sum + calculateAmount(i.quantity, i.rate), 0);
 
   const numberToWords = (num) => {
     const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
@@ -196,7 +214,6 @@ const handleSave = async () => {
         particulars: i.particulars,
         quantity: i.quantity,
         rate: i.rate,
-        discount: i.discount,
       })),
     };
 
@@ -219,6 +236,42 @@ const handleSave = async () => {
     }
   };
 
+  const handleUpdate = async () => {
+    const payload = {
+      date: billData.date,
+      customer_name: billData.customerName,
+      customer_address: billData.customerAddress,
+      customer_contact: billData.customerContact,
+      vehicle_no: billData.vehicleNo,
+      model: billData.model,
+      km: billData.km,
+      next_service_km: billData.nextServiceKm,
+      total_amount: calculateTotal(),
+      items: items.map((i) => ({
+        particulars: i.particulars,
+        quantity: i.quantity,
+        rate: i.rate,
+      })),
+    };
+
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/billing/${location.state?.billId}/update/`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMessage(`✅ Bill updated successfully! Bill No: ${data.bill_no || billNo}`);
+      } else {
+        setMessage(`❌ Error: ${JSON.stringify(data)}`);
+      }
+    } catch (err) {
+      setMessage("❌ Server error: " + err.message);
+    }
+  };
+
   const generateNewBill = () => {
     setBillNo(prev => prev + 1);
     setBillData({
@@ -231,7 +284,7 @@ const handleSave = async () => {
       km: '',
       nextServiceKm: ''
     });
-    setItems([{ particulars: '', quantity: 1, rate: 0, discount: 0 }]);
+    setItems([{ particulars: '', quantity: 1, rate: 0 }]);
   };
 
   // Split items into chunks of 11 for pagination
@@ -334,7 +387,7 @@ const handleSave = async () => {
           <div className="mb-2">
             <strong>Bill No:</strong>
             <span className="ml-2">{billNo}</span>
-            {message && <p className="mt-2 text-sm text-red-600">{message}</p>}
+            {message && <p className="print:hidden mt-2 text-sm text-red-600">{message}</p>}
           </div>
           <div>
             <strong>Date:</strong>
@@ -409,12 +462,21 @@ const handleSave = async () => {
           >
             Print Bill
           </button>
-          <button
-            onClick={handleSave}
-            className="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm flex-1 sm:flex-none"
-          >
-            Save Bill
-          </button>
+          {isEditMode ? (
+            <button
+              onClick={handleUpdate}
+              className="bg-yellow-600 text-white px-3 py-2 rounded hover:bg-yellow-700 text-sm flex-1 sm:flex-none"
+            >
+              Update Bill
+            </button>
+          ) : (
+            <button
+              onClick={handleSave}
+              className="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm flex-1 sm:flex-none"
+            >
+              Save Bill
+            </button>
+          )}
           <button
             onClick={generateNewBill}
             className="bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 text-sm flex-1 sm:flex-none"
@@ -534,7 +596,6 @@ const handleSave = async () => {
                   <th className="border border-black p-2 text-sm">PARTICULARS</th>
                   <th className="border border-black p-2 w-16 text-sm">QTY.</th>
                   <th className="border border-black p-2 w-20 text-sm">RATE</th>
-                  <th className="border border-black p-2 w-20 text-sm">DISC.%</th>
                   <th className="border border-black p-2 w-24 text-sm">AMOUNT</th>
                   <th className="border border-black p-2 w-16 print:hidden text-sm">Action</th>
                 </tr>
@@ -569,18 +630,8 @@ const handleSave = async () => {
                         className="w-full bg-transparent text-right print:border-0 text-sm"
                         step="0.01" />
                     </td>
-                    <td className="border border-black p-2">
-                      <input
-                        type="number"
-                        value={item.discount}
-                        onChange={(e) => updateItem(index, 'discount', parseFloat(e.target.value) || 0)}
-                        className="w-full bg-transparent text-center print:border-0 text-sm"
-                        step="0.01"
-                        max="100"
-                        min="0" />
-                    </td>
                     <td className="border border-black p-2 text-right font-semibold text-sm">
-                      {Math.round(calculateAmount(item.quantity, item.rate, item.discount))}
+                      {Math.round(calculateAmount(item.quantity, item.rate))}
                     </td>
                     <td className="border border-black p-2 text-center print:hidden">
                       <button
@@ -602,14 +653,13 @@ const handleSave = async () => {
                     <td className="border border-black p-2"></td>
                     <td className="border border-black p-2"></td>
                     <td className="border border-black p-2"></td>
-                    <td className="border border-black p-2"></td>
                     <td className="border border-black p-2 print:hidden"></td>
                   </tr>
                 ))}
 
                 {/* Total Row */}
                 <tr>
-                  <td colSpan="5" className="border border-black p-2 text-right font-bold">TOTAL</td>
+                  <td colSpan="4" className="border border-black p-2 text-right font-bold">TOTAL</td>
                   <td className="border border-black p-2 text-right font-bold text-sm">
                     {Math.round(calculateTotal())}
                   </td>
@@ -695,7 +745,6 @@ const handleSave = async () => {
                         <th className="border border-black p-2 text-sm">PARTICULARS</th>
                         <th className="border border-black p-2 w-16 text-sm">QTY.</th>
                         <th className="border border-black p-2 w-20 text-sm">RATE</th>
-                        <th className="border border-black p-2 w-20 text-sm">DISC.%</th>
                         <th className="border border-black p-2 w-24 text-sm">AMOUNT</th>
                       </tr>
                     </thead>
@@ -714,11 +763,8 @@ const handleSave = async () => {
                           <td className="border border-black p-2 text-right text-sm">
                             {item.rate}
                           </td>
-                          <td className="border border-black p-2 text-center text-sm">
-                            {item.discount}
-                          </td>
                           <td className="border border-black p-2 text-right font-semibold text-sm">
-                            {Math.round(calculateAmount(item.quantity, item.rate, item.discount))}
+                            {Math.round(calculateAmount(item.quantity, item.rate))}
                           </td>
                         </tr>
                       ))}
@@ -726,7 +772,7 @@ const handleSave = async () => {
                       {/* Show total only on last page */}
                       {isLastPage && (
                         <tr>
-                          <td colSpan="5" className="border border-black p-2 text-right font-bold">TOTAL</td>
+                          <td colSpan="4" className="border border-black p-2 text-right font-bold">TOTAL</td>
                           <td className="border border-black p-2 text-right font-bold text-sm">
                             {Math.round(calculateTotal())}
                           </td>

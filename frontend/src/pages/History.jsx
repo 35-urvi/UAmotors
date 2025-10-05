@@ -7,8 +7,11 @@ import {
   XMarkIcon,            // X
   ArrowsUpDownIcon      // ArrowUpDown
 } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 const HistoryPage = () => {
+  const navigate = useNavigate();
+  
   // Sample billing data
 //   const [allBills] = useState([
 //     {
@@ -257,10 +260,50 @@ const sortedBills = [...filteredBills].sort((a, b) => {
     setSelectedBill(null);
   };
 
-  const calculateAmount = (quantity, rate, discount) => {
-    const gross = quantity * rate;
-    const discountAmount = gross * discount / 100;
-    return Math.round(gross - discountAmount);
+  const handleDeleteBill = async (billId) => {
+    if (window.confirm('Are you sure you want to delete this bill? This action cannot be undone.')) {
+      try {
+        const response = await axios.delete(`http://127.0.0.1:8000/api/billing/${billId}/delete/`);
+        if (response.status === 200) {
+          // Remove the bill from the local state
+          setAllBills(prevBills => prevBills.filter(bill => bill.id !== billId));
+          closeModal();
+          alert('Bill deleted successfully!');
+        }
+      } catch (error) {
+        console.error('Error deleting bill:', error);
+        alert('Error deleting bill. Please try again.');
+      }
+    }
+  };
+
+  const handlePrintBill = (bill) => {
+    // Close the modal first
+    closeModal();
+    
+    // Navigate to billing page with bill data
+    navigate('/billing', { 
+      state: { 
+        billData: {
+          date: bill.date,
+          customerName: bill.customerName,
+          customerAddress: bill.customerAddress,
+          customerContact: bill.customerContact,
+          vehicleNo: bill.vehicleNo,
+          model: bill.model,
+          km: bill.km,
+          nextServiceKm: bill.nextServiceKm,
+          billNo: bill.billNo
+        },
+        items: bill.items || [],
+        billId: bill.id,
+        mode: 'edit'
+      } 
+    });
+  };
+
+  const calculateAmount = (quantity, rate) => {
+    return quantity * rate;
   };
 
   return (
@@ -497,7 +540,6 @@ const sortedBills = [...filteredBills].sort((a, b) => {
                                               <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 border-b">Particulars</th>
                                               <th className="px-4 py-2 text-center text-sm font-semibold text-gray-900 border-b">Qty</th>
                                               <th className="px-4 py-2 text-right text-sm font-semibold text-gray-900 border-b">Rate</th>
-                                              <th className="px-4 py-2 text-center text-sm font-semibold text-gray-900 border-b">Disc %</th>
                                               <th className="px-4 py-2 text-right text-sm font-semibold text-gray-900 border-b">Amount</th>
                                           </tr>
                                       </thead>
@@ -508,14 +550,13 @@ const sortedBills = [...filteredBills].sort((a, b) => {
                                                   <td className="px-4 py-2 text-sm text-gray-900">{item.particulars}</td>
                                                   <td className="px-4 py-2 text-sm text-gray-900 text-center">{item.quantity}</td>
                                                   <td className="px-4 py-2 text-sm text-gray-900 text-right">₹{item.rate}</td>
-                                                  <td className="px-4 py-2 text-sm text-gray-900 text-center">{item.discount}%</td>
                                                   <td className="px-4 py-2 text-sm font-semibold text-gray-900 text-right">
-                                                      ₹{calculateAmount(item.quantity, item.rate, item.discount).toLocaleString('en-IN')}
+                                                      ₹{calculateAmount(item.quantity, item.rate).toLocaleString('en-IN')}
                                                   </td>
                                               </tr>
                                           ))}
                                           <tr className="bg-gray-50 font-bold">
-                                              <td colSpan="5" className="px-4 py-3 text-sm text-right">TOTAL</td>
+                                              <td colSpan="4" className="px-4 py-3 text-sm text-right">TOTAL</td>
                                               {/* <td className="px-4 py-3 text-sm text-right">₹{selectedBill.total.toLocaleString('en-IN')}</td> */}
                                               <td className="px-4 py-3 text-sm text-right">₹{selectedBill.totalAmount ? selectedBill.totalAmount.toLocaleString() : "0"}</td>
 
@@ -534,8 +575,14 @@ const sortedBills = [...filteredBills].sort((a, b) => {
                               Close
                           </button>
                           <button
-                            //   onClick={() => window.print()}
+                              onClick={() => handlePrintBill(selectedBill)}
                               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                          >
+                              Print
+                          </button>
+                          <button
+                              onClick={() => handleDeleteBill(selectedBill.id)}
+                              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                           >
                               Delete
                           </button>
