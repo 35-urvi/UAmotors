@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 
 const navigate = useNavigate();
 
-
 export default function Login() {
   const [formData, setFormData] = useState({
     username: '',
@@ -50,39 +49,8 @@ export default function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
-//   const handleSubmit = async (e) => {
-//   e.preventDefault();
-
-//   if (!validateForm()) return;
-
-//   setIsLoading(true);
-
-//   try {
-//     const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/login/`, {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify(formData),
-//     });
-
-//     if (res.ok) {
-//       const data = await res.json();
-//       console.log(data.message);
-//       window.location.href = data.redirect; // redirect to dashboard
-//     } else {
-//       const err = await res.json();
-//       setErrors({ submit: err.error });
-//     }
-//   } catch (error) {
-//     setErrors({ submit: "Something went wrong. Try again." });
-//   } finally {
-//     setIsLoading(false);
-//   }
-// };
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
   e.preventDefault();
-  if (isLoading) return; // prevent double submit
-
-  setErrors({}); // reset previous errors
 
   if (!validateForm()) return;
 
@@ -98,8 +66,7 @@ const handleSubmit = async (e) => {
     if (res.ok) {
       const data = await res.json();
       console.log(data.message);
-      // Recommended: use React Router navigate instead of window.location.href
-      // window.location.href = data.redirect;
+      // window.location.href = data.redirect; // redirect to dashboard
       navigate("/dashboard");
     } else {
       const err = await res.json();
@@ -111,7 +78,6 @@ const handleSubmit = async (e) => {
     setIsLoading(false);
   }
 };
-
 
 
   return (
