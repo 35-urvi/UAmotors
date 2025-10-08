@@ -54,7 +54,7 @@ export default function Login() {
   setIsLoading(true);
 
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/billing/`, {
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/login/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
