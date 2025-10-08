@@ -18,10 +18,10 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     try {
       const [statsResponse, revenueResponse, servicesResponse, billsResponse] = await Promise.all([
-        axios.get('http://127.0.0.1:8000/api/dashboard/stats/'),
-        axios.get('http://127.0.0.1:8000/api/dashboard/monthly-revenue/'),
-        axios.get('http://127.0.0.1:8000/api/dashboard/top-services/'),
-        axios.get('http://127.0.0.1:8000/api/dashboard/recent-bills/')
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/dashboard/stats/`),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/dashboard/monthly-revenue/`),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/dashboard/top-services/`),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/dashboard/recent-bills/`)
       ]);
 
       setDashboardStats(statsResponse.data);

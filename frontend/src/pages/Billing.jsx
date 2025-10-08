@@ -59,7 +59,7 @@ const BillingPage = () => {
       }
     } else {
       // Fetch next bill number only if not printing existing bill
-      fetch("http://127.0.0.1:8000/api/billing/next-bill/")
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/billing/next-bill/`)
         .then((res) => res.json())
         .then((data) => setBillNo(data.bill_no))
         .catch(() => setMessage("Error fetching bill number"));
@@ -68,7 +68,7 @@ const BillingPage = () => {
 
   // Fetch items catalog for suggestions
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/items/')
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/items/`)
       .then(res => res.json())
       .then(data => {
         const names = Array.isArray(data) ? data.map(i => i.name).filter(Boolean) : [];
@@ -166,51 +166,6 @@ const BillingPage = () => {
     window.print();
   };
 
-  // const handleDownloadPDF = () => {
-  //   alert('Please install jsPDF package: npm install jspdf jspdf-autotable');
-  // };
-  // Convert image URL (imported file) to Base64
-
-//  const handleDownloadPDF = () => {
-//   const doc = new jsPDF("p", "pt", "a4");
-
-//   // Header
-//   doc.setFontSize(14);
-//   doc.text("UA MOTORS", 40, 40);
-
-//   // Example table
-//   const tableColumn = ["No.", "Particulars", "Qty", "Rate", "Disc.%", "Amount"];
-//   const tableRows = [];
-
-//   items.forEach((item, index) => {
-//     tableRows.push([
-//       index + 1,
-//       item.particulars || "-",
-//       item.quantity,
-//       item.rate,
-//       item.discount,
-//       Math.round(calculateAmount(item.quantity, item.rate, item.discount)),
-//     ]);
-//   });
-
-//   tableRows.push([
-//     { content: "TOTAL", colSpan: 5, styles: { halign: "right", fontStyle: "bold" } },
-//     { content: Math.round(calculateTotal()), styles: { halign: "right", fontStyle: "bold" } },
-//   ]);
-
-//   // ✅ Correct usage
-//   autoTable(doc, {
-//     head: [tableColumn],
-//     body: tableRows,
-//     startY: 70,
-//     theme: "grid",
-//     styles: { fontSize: 9 },
-//     headStyles: { fillColor: [66, 133, 244] },
-//   });
-
-//   // Save PDF
-//   doc.save(`Bill-${billNo}.pdf`);
-// };
 
 const handleSave = async () => {
     const payload = {
@@ -231,7 +186,7 @@ const handleSave = async () => {
     };
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/billing/create/", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/billing/create/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -268,7 +223,7 @@ const handleSave = async () => {
     };
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/billing/${location.state?.billId}/update/`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/billing/${location.state?.billId}/update/`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

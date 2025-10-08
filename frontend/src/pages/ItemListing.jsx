@@ -15,7 +15,7 @@ export default function ItemListing() {
   // Fetch items on page load
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:8000/api/items/")
+      .get(`${import.meta.env.VITE_API_BASE_URL}/api/items/`)
       .then((res) => setItems(res.data))
       .catch((err) => console.error("Error fetching items:", err));
   }, []);
@@ -56,7 +56,7 @@ const handleAddItem = async (e) => {
     e.preventDefault();
     if (newItemName.trim()) {
       try {
-        const res = await axios.post("http://127.0.0.1:8000/api/items/", {
+        const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/items/`, {
           name: newItemName,
         });
         setItems([...items, res.data]);
@@ -92,7 +92,7 @@ const handleAddItem = async (e) => {
     if (editName.trim()) {
       try {
         const res = await axios.put(
-          `http://127.0.0.1:8000/api/items/${id}/`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/items/${id}/`,
           { name: editName }
         );
         setItems(items.map((item) => (item.id === id ? res.data : item)));
@@ -127,7 +127,7 @@ const handleCancelEdit = () => {
  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this item?")) {
       try {
-        await axios.delete(`http://127.0.0.1:8000/api/items/${id}/`);
+        await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/items/${id}/`);
         setItems(items.filter((item) => item.id !== id));
       } catch (err) {
         console.error("Error deleting item:", err);

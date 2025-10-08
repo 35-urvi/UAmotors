@@ -148,9 +148,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-CORS_ALLOWED_ORIGINS = [
-    os.getenv("FRONTEND_URL", "http://localhost:5173"),
-]
+# CORS_ALLOWED_ORIGINS = [
+#     os.getenv("FRONTEND_URL", "http://localhost:5173"),
+# ]
 
 CORS_ALLOWED_ORIGINS = [
     # "https://uamotors.netlify.app",  # (we’ll update this after frontend deployment)

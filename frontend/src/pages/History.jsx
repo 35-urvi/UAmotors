@@ -12,171 +12,12 @@ import Navbar from '../components/Navbar';
 const HistoryPage = () => {
   const navigate = useNavigate();
   
-  // Sample billing data
-//   const [allBills] = useState([
-//     {
-//       id: 1,
-//       billNo: '300-2025/2',
-//       date: '2025-10-01',
-//       customerName: 'Rajesh Kumar',
-//       customerAddress: 'Satellite, Ahmedabad',
-//       customerContact: '9876543210',
-//       vehicleNo: 'GJ 01 AA 1234',
-//       model: 'BMW 3 Series',
-//       km: '45000',
-//       nextServiceKm: '50000',
-//       items: [
-//         { particulars: 'Engine Oil Change', quantity: 1, rate: 2500, discount: 10 },
-//         { particulars: 'Oil Filter', quantity: 1, rate: 800, discount: 0 },
-//         { particulars: 'Air Filter', quantity: 1, rate: 1200, discount: 5 }
-//       ],
-//       total: 4155
-//     },
-//     {
-//       id: 2,
-//       billNo: '299-2025/2',
-//       date: '2025-09-28',
-//       customerName: 'Priya Shah',
-//       customerAddress: 'Bodakdev, Ahmedabad',
-//       customerContact: '9898765432',
-//       vehicleNo: 'GJ 01 BC 5678',
-//       model: 'Audi A4',
-//       km: '32000',
-//       nextServiceKm: '37000',
-//       items: [
-//         { particulars: 'Brake Pad Replacement', quantity: 4, rate: 1500, discount: 0 },
-//         { particulars: 'Brake Fluid Top-up', quantity: 1, rate: 500, discount: 0 }
-//       ],
-//       total: 6500
-//     },
-//     {
-//       id: 3,
-//       billNo: '298-2025/2',
-//       date: '2025-09-25',
-//       customerName: 'Amit Patel',
-//       customerAddress: 'Vastrapur, Ahmedabad',
-//       customerContact: '9123456789',
-//       vehicleNo: 'GJ 01 CD 9012',
-//       model: 'Toyota Fortuner',
-//       km: '68000',
-//       nextServiceKm: '73000',
-//       items: [
-//         { particulars: 'Full Service', quantity: 1, rate: 5000, discount: 15 },
-//         { particulars: 'Wheel Alignment', quantity: 1, rate: 800, discount: 0 },
-//         { particulars: 'Tire Rotation', quantity: 1, rate: 600, discount: 0 }
-//       ],
-//       total: 5650
-//     },
-//     {
-//       id: 4,
-//       billNo: '297-2025/2',
-//       date: '2025-09-20',
-//       customerName: 'Neha Desai',
-//       customerAddress: 'Thaltej, Ahmedabad',
-//       customerContact: '9988776655',
-//       vehicleNo: 'GJ 01 DE 3456',
-//       model: 'Honda City',
-//       km: '25000',
-//       nextServiceKm: '30000',
-//       items: [
-//         { particulars: 'AC Service', quantity: 1, rate: 1800, discount: 10 },
-//         { particulars: 'AC Filter', quantity: 1, rate: 400, discount: 0 }
-//       ],
-//       total: 2020
-//     },
-//     {
-//       id: 5,
-//       billNo: '296-2025/2',
-//       date: '2025-09-15',
-//       customerName: 'Vikram Singh',
-//       customerAddress: 'Maninagar, Ahmedabad',
-//       customerContact: '9887766554',
-//       vehicleNo: 'GJ 01 EF 7890',
-//       model: 'Hyundai Creta',
-//       km: '15000',
-//       nextServiceKm: '20000',
-//       items: [
-//         { particulars: 'First Service', quantity: 1, rate: 3500, discount: 20 },
-//         { particulars: 'Underbody Coating', quantity: 1, rate: 2000, discount: 0 }
-//       ],
-//       total: 4800
-//     },
-//     {
-//       id: 6,
-//       billNo: '295-2025/2',
-//       date: '2025-09-10',
-//       customerName: 'Kavita Mehta',
-//       customerAddress: 'CG Road, Ahmedabad',
-//       customerContact: '9776655443',
-//       vehicleNo: 'GJ 01 FG 2345',
-//       model: 'Mahindra XUV700',
-//       km: '42000',
-//       nextServiceKm: '47000',
-//       items: [
-//         { particulars: 'Battery Replacement', quantity: 1, rate: 6500, discount: 5 },
-//         { particulars: 'Engine Scanning', quantity: 1, rate: 800, discount: 0 }
-//       ],
-//       total: 6975
-//     },
-//     {
-//       id: 7,
-//       billNo: '294-2025/2',
-//       date: '2025-09-05',
-//       customerName: 'Suresh Joshi',
-//       customerAddress: 'Gota, Ahmedabad',
-//       customerContact: '9665544332',
-//       vehicleNo: 'GJ 01 GH 6789',
-//       model: 'Kia Seltos',
-//       km: '28000',
-//       nextServiceKm: '33000',
-//       items: [
-//         { particulars: 'Suspension Check', quantity: 1, rate: 1500, discount: 0 },
-//         { particulars: 'Shock Absorber Replacement', quantity: 2, rate: 2500, discount: 10 }
-//       ],
-//       total: 6000
-//     },
-//     {
-//       id: 8,
-//       billNo: '293-2025/2',
-//       date: '2025-09-01',
-//       customerName: 'Anjali Sharma',
-//       customerAddress: 'Prahlad Nagar, Ahmedabad',
-//       customerContact: '9554433221',
-//       vehicleNo: 'GJ 01 HI 0123',
-//       model: 'Tata Nexon',
-//       km: '18000',
-//       nextServiceKm: '23000',
-//       items: [
-//         { particulars: 'General Service', quantity: 1, rate: 2800, discount: 0 },
-//         { particulars: 'Wiper Blade Replacement', quantity: 2, rate: 300, discount: 0 }
-//       ],
-//       total: 3400
-//     }
-//   ]);
 
 const [allBills, setAllBills] = useState([]);
 
-// useEffect(() => {
-//   axios.get("http://127.0.0.1:8000/api/billing/bills/")
-//     .then(res => setAllBills(res.data))
-//     .catch(err => console.error(err));
-// }, []);
-// useEffect(() => {
-//   axios.get("http://127.0.0.1:8000/api/billing/bills/")
-//     .then(res => {
-//       const formatted = res.data.map(bill => ({
-//         ...bill,
-//         customerName: bill.customer_name,
-//         vehicleNo: bill.vehicle_no,
-//         billNo: bill.bill_no,
-//         totalAmount: bill.total_amount,
-//       }));
-//       setAllBills(formatted);
-//     })
-//     .catch(err => console.error(err));
-// }, []);
+
 useEffect(() => {
-  axios.get("http://127.0.0.1:8000/api/billing/bills/")
+  axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/billing/bills/`)
     .then(res => {
       const formatted = res.data.map(bill => ({
         ...bill,
@@ -213,17 +54,7 @@ useEffect(() => {
   );
 });
 
-  // Sort bills
-//   const sortedBills = [...filteredBills].sort((a, b) => {
-//     if (sortField === 'date') {
-//       const comparison = new Date(a.date) - new Date(b.date);
-//       return sortDirection === 'asc' ? comparison : -comparison;
-//     } else if (sortField === 'total') {
-//       const comparison = a.total - b.total;
-//       return sortDirection === 'asc' ? comparison : -comparison;
-//     }
-//     return 0;
-//   });
+  
 const sortedBills = [...filteredBills].sort((a, b) => {
   if (sortField === 'date') {
     const comparison = new Date(a.date) - new Date(b.date);
@@ -263,7 +94,7 @@ const sortedBills = [...filteredBills].sort((a, b) => {
   const handleDeleteBill = async (billId) => {
     if (window.confirm('Are you sure you want to delete this bill? This action cannot be undone.')) {
       try {
-        const response = await axios.delete(`http://127.0.0.1:8000/api/billing/${billId}/delete/`);
+        const response = await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/billing/${billId}/delete/`);
         if (response.status === 200) {
           // Remove the bill from the local state
           setAllBills(prevBills => prevBills.filter(bill => bill.id !== billId));
