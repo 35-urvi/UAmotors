@@ -1,7 +1,5 @@
 import React, { useState, useRef ,useEffect} from 'react';
 import { useLocation } from 'react-router-dom';
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import Navbar from '../components/Navbar';
 import Logo from '../assets/Logo.png';
 import QR from '../assets/QR.jpg';
