@@ -7,13 +7,13 @@ import Logo from '../assets/Logo.png';
 import QR from '../assets/QR.jpg';
 import Audi from '../assets/Audi.png';
 import Mg from '../assets/Mg.png';
-import BMW from '../assets/BMW.png';
+import Bmw from '../assets/Bmw.png';
 import Honda from '../assets/Honda.png';
 import Volkswegan from '../assets/Volkswegan.jpg';
 import Mahindra from '../assets/Mahindra.png';
-import Kia from '../assets/Kia.png';
+import kia from '../assets/kia.png';
 import Toyota from '../assets/Toyota.png';
-import Hyundai from '../assets/hyundai.png';
+import Hyundai from '../assets/Hyundai.png';
 import Tata from '../assets/Tata.png'
 import Suzuki from '../assets/Suzuki.png';
 import Mercedes from '../assets/Mercedes.png'
@@ -697,7 +697,7 @@ const handleSave = async () => {
                 <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mg} alt="Logo" className="w-full h-full object-contain" /></div>
                 <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mahindra} alt="Logo" className="w-full h-full object-contain" /></div>
                 <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Toyota} alt="Logo" className="w-full h-full object-contain" /></div>
-                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Kia} alt="Logo" className="w-full h-full object-contain" /></div>
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={kia} alt="Logo" className="w-full h-full object-contain" /></div>
                 <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Hyundai} alt="Logo" className="w-full h-full object-contain" /></div>
                 <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Tata} alt="Logo" className="w-full h-full object-contain" /></div>
                 <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Suzuki} alt="Logo" className="w-full h-full object-contain" /></div>
@@ -797,7 +797,7 @@ const handleSave = async () => {
                         <div className="flex flex-wrap gap-2 mt-4">
                           <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mercedes} alt="Logo" className="w-full h-full bg-white object-contain" /></div>
                           <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Audi} alt="Logo" className="w-full h-full bg-white object-contain" /></div>
-                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={BMW} alt="Logo" className="w-full h-full object-contain" /></div>
+                          <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Bmw} alt="Logo" className="w-full h-full object-contain" /></div>
                           <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Volkswegan} alt="Logo" className="w-full h-full object-contain" /></div>
                           <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mg} alt="Logo" className="w-full h-full object-contain" /></div>
                           <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mahindra} alt="Logo" className="w-full h-full object-contain" /></div>
