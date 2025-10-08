@@ -3,10 +3,7 @@
 
 import { useState } from 'react';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import Logo from '../assets/Logo.png'
-import { useNavigate } from "react-router-dom";
-
-const navigate = useNavigate();
+import Logo from '../assets/Logo.png';
 
 export default function Login() {
   const [formData, setFormData] = useState({
