@@ -153,11 +153,11 @@ CORS_ALLOW_ALL_ORIGINS = True
 # ]
 
 CORS_ALLOWED_ORIGINS = [
-    # "https://uamotors.netlify.app",  # (we’ll update this after frontend deployment)
+    "https://uamotors.netlify.app",  
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    # "https://uamotors-backend.onrender.com"
+    "https://uamotors.onrender.com"
 ]
 
 STATIC_URL = '/static/'
