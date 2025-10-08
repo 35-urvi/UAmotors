@@ -66,8 +66,8 @@ export default function Login() {
     if (res.ok) {
       const data = await res.json();
       console.log(data.message);
-      // window.location.href = data.redirect; // redirect to dashboard
-      navigate("/dashboard");
+      window.location.href = data.redirect; // redirect to dashboard
+      // navigate("/dashboard");
     } else {
       const err = await res.json();
       setErrors({ submit: err.error });
