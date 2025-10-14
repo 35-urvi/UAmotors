@@ -1,5 +1,5 @@
 // components/Navbar.jsx
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   HomeIcon,
   CreditCardIcon,
@@ -10,6 +10,7 @@ import Logo from '../assets/Logo.png'
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
     { name: 'Dashboard', icon: HomeIcon, path: '/dashboard' },
@@ -20,7 +21,11 @@ export default function Navbar() {
 
   const handleLogout = () => {
     console.log('Logging out...');
-    window.location.href = '/';
+    // Clear authentication state
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("user");
+    // Navigate to login page
+    navigate("/");
   };
 
   return (

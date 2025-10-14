@@ -2,10 +2,12 @@
 // Example: import Login from './components/Login.jsx'
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import Logo from '../assets/Logo.png';
 
 export default function Login() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -63,13 +65,19 @@ export default function Login() {
     if (res.ok) {
       const data = await res.json();
       console.log(data.message);
-      window.location.href = data.redirect; // redirect to dashboard
-      // navigate("/dashboard");
+      
+      // Store authentication state in localStorage
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("user", JSON.stringify({ username: formData.username }));
+      
+      // Navigate to dashboard using React Router
+      navigate("/dashboard");
     } else {
       const err = await res.json();
       setErrors({ submit: err.error });
     }
   } catch (error) {
+    console.error("Login error:", error);
     setErrors({ submit: "Something went wrong. Try again." });
   } finally {
     setIsLoading(false);

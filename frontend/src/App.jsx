@@ -6,7 +6,7 @@ import History from "./pages/History";
 import ItemListing from "./pages/ItemListing";
 function PrivateRoute({ children }) {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
-  return isLoggedIn ? children : <Navigate to="/" />;
+  return isLoggedIn === "true" ? children : <Navigate to="/" />;
 }
 
 export default function App() {
