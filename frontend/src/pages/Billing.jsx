@@ -690,7 +690,7 @@ const handleSave = async () => {
 
                 <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mercedes} alt="Logo" className="w-full h-full object-contain" /></div>
                 <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Audi} alt="Logo" className="w-full h-full object-contain" /></div>
-                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={BMW} alt="Logo" className="w-full h-full object-contain" /></div>
+                <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Bmw} alt="Logo" className="w-full h-full object-contain" /></div>
                 <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Volkswegan} alt="Logo" className="w-full h-full object-contain" /></div>
                 <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mg} alt="Logo" className="w-full h-full object-contain" /></div>
                 <div className="w-8 h-6  rounded flex items-center justify-center text-xs"><img src={Mahindra} alt="Logo" className="w-full h-full object-contain" /></div>
